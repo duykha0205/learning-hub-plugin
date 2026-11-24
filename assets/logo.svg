@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Learning Hub">
+  <defs>
+    <linearGradient id="lh-grad" x1="16" y1="16" x2="112" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+  <!-- Outer hub frame (~10% margin) -->
+  <rect x="14" y="14" width="100" height="100" rx="24" fill="url(#lh-grad)" stroke="#ffffff" stroke-opacity="0.3" stroke-width="2" />
+  <!-- Open layered artifact card -->
+  <rect x="28" y="28" width="72" height="54" rx="10" fill="#0f172a" fill-opacity="0.88" stroke="#e2e8f0" stroke-width="2.5" />
+  <!-- Stylized Hanzi "文" (language / learning) -->
+  <path d="M64 36v7M44 45h40M53 45c2 11 9 20 23 26M75 45c-2 11-9 20-23 26" fill="none" stroke="#f8fafc" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Tone-contour / SRS progression wave along the base -->
+  <path d="M30 96h16l12-10 12 14 14-12h14" fill="none" stroke="#f8fafc" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="98" cy="88" r="4.5" fill="#fbbf24" stroke="#0f172a" stroke-width="1.5" />
+</svg>

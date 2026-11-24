@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "learning_hub": {
+      "command": "bash",
+      "args": ["${PLUGIN_ROOT}/bin/mcp-stdio.sh"],
+      "env": {
+        "LEARNING_HUB_DATA_DIR": "${PLUGIN_DATA}"
+      }
+    }
+  }
+}

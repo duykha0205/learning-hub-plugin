@@ -1,0 +1,12 @@
+{
+  "name": "learning-hub",
+  "displayName": "Learning Hub",
+  "description": "Local-first AI Tutor & Layered HTML Artifact Hub with SM-2 spaced repetition, multi-angle Feynman checks, and 3-tier modular Markdown memory.",
+  "version": "2.0.0",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Mở Learning Hub và bắt đầu buổi học Tiếng Trung từ con số 0 trong 15 phút hôm nay (Pinyin, 4 thanh điệu và bộ thủ gốc).",
+    "Kiểm tra các thẻ SRS Tiếng Trung đến hạn hôm nay, cho mình ôn tập nhanh và đánh giá theo phương pháp Feynman.",
+    "Chạy Memory Consolidator để tổng hợp các learning events chưa gộp và đề xuất cập nhật tài liệu trí nhớ."
+  ]
+}
