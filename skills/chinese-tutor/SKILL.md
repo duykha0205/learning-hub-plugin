@@ -17,16 +17,36 @@ description: Teach Mandarin Chinese from absolute zero (Phase 0 to Phase 3) usin
    - `activeCorrections` (mandatory rules — **never** use Vietnamese phonetic hacks like `"ní hảo"`)
    - `recentSessions` (resume active session or start a new one)
 
-## Step 2: Prepare Visual Assets & Curated Components
-1. Call `list_curated_components({ category: "all" })` to inspect exact `<hub-*>` attributes and copy the canonical `<head>` snippet:
+## Step 2: Prepare Components
+1. Call `list_curated_components({ category: "all" })` (or `GET /api/ui-components`) to inspect exact `<hub-*>` + dynamic component attributes and copy the canonical `<head>` snippet:
    ```html
    <link rel="stylesheet" href="/sdk/hub-tokens.css" />
    <script type="module" src="/sdk/hub-runtime.js"></script>
    ```
-2. Call `search_assets({ userId, domainId: "chinese", query })` to find age-appropriate curated SVGs (e.g. `/curated-assets/chinese/tones-4-contour.svg`, `radical-kou.svg`, `radical-shi.svg`) and verified facts.
+2. **Dynamic UI Components (`/ui-components/` & `/api/ui-components`):**
+   - **Rule: Never edit `src/hub-components/`** or rebuild `hub-runtime.js` when a lesson needs a new UI component or external library.
+   - Research and package new self-contained Web Components / ESM modules, then:
+     - Push or update via MCP `upsert_ui_component` (or `POST /api/ui-components` / `PUT /api/ui-components/[id]`).
+     - Inspect via `get_ui_component` (`GET /api/ui-components/[id]`) and remove via `delete_ui_component` (`DELETE /api/ui-components/[id]`).
+     - Import into artifact HTML using the returned `importSnippet` (e.g. `<script type="module" src="/ui-components/<id>/index.js?v=<version>"></script>` and optional `<link rel="stylesheet" href="/ui-components/<id>/styles.css?v=<version>" />`), communicating back to the hub via `window.HubBridge`.
 3. Respect `user.age` HTML policy:
    - `age < 10`: strict mode (`<= 40 KB`, NO inline `<script>` code bodies, NO `on*` attributes).
    - `age >= 10`: full mode (`<= 150 KB`, inline SVG and `<script>` permitted; NEVER use `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, or external CDNs).
+
+Generated assets (SVG, audio, etc.) are written through `StorageProvider` into `data/<user>/<domain>/` alongside the artifact HTML.
+
+## Learner-Fit & Multi-Representation Rule (No Single Template)
+Lesson shape is chosen per learner and per concept. Never reuse one fixed layout, exercise format, or tone by default.
+1. **Never lock a template.** No default lesson skeleton, exercise type, or visual style carries over unexamined between sessions or concepts.
+2. **Fit the learner first.** Design from `00-profile`, `activeCorrections`, `03-weak-spots`, and `04-digests`; content, tone, and examples follow that learner, not a generic audience.
+   - Adult peer learner (e.g. Kha): Abstract -> Detail, analytical framing, no Vietnamese phonetic hacks, adult real-life scenarios.
+   - Young learner (e.g. Bé Minh, 7yo, `strict` HTML mode): gentle and playful, story/concrete-first, short sentences, large visuals, no IPA or pitch-contour dumps.
+3. **Rotate representations of the same concept.** For a key lesson or concept, produce multiple distinct styles over the arc — same facts, different angle. Use 2–4 per milestone, each as its own artifact linked back with `parentArtifactId`:
+   - **Editorial / Narrative** — prose, story-led, typographic hierarchy.
+   - **Knowledge Graph / Spatial Map** — nodes and edges, radicals and compounds as a map.
+   - **Studio Bento / Matrix** — comparable tiles side by side (tones, minimal pairs).
+   - **Tactile / Hands-on Lab** — sort, drag, quiz, audio drill; the learner manipulates the material.
+4. **Name the style in the artifact** (e.g. subtitle `Spatial Map`) and check `04-digests` so the next session rotates away from the last style used.
 
 ## Step 3: Execute the 15-Minute Daily Rhythm
 
@@ -35,13 +55,19 @@ description: Teach Mandarin Chinese from absolute zero (Phase 0 to Phase 3) usin
 - Let the learner grade recall (`0..3`); the MCP App automatically persists `HUB_LOG_REVIEW` into `srs_cards` and `learning_events`.
 
 ### Block B — 8-Minute Abstract -> Detail HTML Artifact
-- **Layer 1 (Abstract Overview):** Keep it crisp and visual — show the big-picture mental model (e.g., 3 core pieces in Phase 0, or 4 tone contours `55 / 35 / 214 / 51`), embed curated SVG diagrams, add `<hub-audio-phrase>` for listening at `0.7x` / `1.0x`, and include `<hub-choice-board>` + `<hub-send-back-bar>` so the learner chooses what to drill deeper.
+- **Layer 1 (Abstract Overview):** Keep it crisp and visual — show the big-picture mental model (e.g., 3 core pieces in Phase 0, or 4 tone contours `55 / 35 / 214 / 51`), embed generated SVG diagrams, add `<hub-audio-phrase>` for listening at `0.7x` / `1.0x`, and include `<hub-choice-board>` + `<hub-send-back-bar>` so the learner chooses what to drill deeper.
 - **Layer 2+ (Targeted Detail):** When the learner submits choices or asks a question:
   1. Call `get_session_inbox(sessionId)` to consume pending events cleanly.
   2. Publish a focused drill-down artifact (`parentArtifactId`, `layerDepth: 2` or `3`) using `<hub-hanzi-breakdown>`, `<hub-audio-phrase>`, and `<hub-quiz-check>`.
 - Note on collaboration:
   - When the learner is using the Antigravity Side Pane (`aux_pane`), `HUB_SELECTION_SUBMIT` / `HUB_FEYNMAN_SUBMIT` automatically triggers a chat message to wake you.
   - When collaborating via the browser shell (`/s/{sessionId}`), run `node scripts/wait-session-event.mjs --session=<sessionId>` if waiting for the next UI submission, then call `get_session_inbox(sessionId)`.
+
+### Artifact File Naming, Cross-Linking & Domain Index Workflow
+Whenever creating a new lesson/topic artifact in a domain:
+1. Call `list_artifacts(userId, domainId)` first to inspect existing artifacts and check whether `index.html` already exists.
+2. Pass a descriptive `filename` to `publish_artifact` (e.g. `radicals-50.html`, `tones-sandhi.html`), and include relative navigation links inside the HTML (e.g. `<a href="./index.html">← Learning Path</a>` and links to related/previous lessons `./...html`).
+3. Update (or create) `index.html` in that domain (`publish_artifact` with `filename: "index.html"`) to add the new lesson's card/link (`./radicals-50.html`) into the domain's Learning Path so the learner can jump back and forth seamlessly.
 
 ### Block C — 3-Minute Multi-Angle Feynman Check
 - Close the session with `<hub-feynman-note>` using one of the 4 facets (rotate across sessions):

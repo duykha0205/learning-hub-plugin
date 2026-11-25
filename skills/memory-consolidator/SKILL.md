@@ -43,7 +43,7 @@ description: Consolidate unconsolidated Tier 1 learning_events into Tier 2/3 mod
 ## Step 3: Propose / Apply Revisions & Mark Consumed Events
 1. Decide `autoApply`:
    - If running as an autonomous periodic sweep where low-risk digests/promotions should take effect immediately (or user asked to apply), set `autoApply: true` (revisions remain rollback-safe in `memory_doc_revisions`).
-   - If user asked to review proposed memory edits first, set `autoApply: false` so proposals appear in `/admin` (tab "Memory 3 Tầng") for approval.
+   - If user asked to review proposed memory edits first, set `autoApply: false` so proposals remain pending in `memory_doc_revisions` for review/apply via `POST /api/memory/revisions/[revisionId]` with `{ "action": "apply" }`.
 2. Call `propose_memory_update` once per modified `docKey` (`00-profile` .. `05-feynman-vault`) with:
    - `transformType`: `"compress"` | `"correct"` | `"prune"` | `"promote"`
    - `diffSummary`: clear 1-sentence Vietnamese/English summary of what changed and why
