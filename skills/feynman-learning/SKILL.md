@@ -71,4 +71,5 @@ Luôn kết thúc artifact bài học bằng lịch sử nộp bài để ngư�
 
 - Tự gọi `GET /api/exercises/overview` (10 dòng mặc định, đổi bằng `limit`) khi mount và **refresh ngay khi POST xong** (`hub:exercise-saved`), với `HUB_EXERCISE_SUBMIT` làm fallback.
 - Attribute tùy chọn: `user-id`, `domain-id`, `session-id`, `artifact-id`, `limit`, `month` (`YYYY-MM`), `title`, `api-base`. Trong `/s/{sessionId}` và `/<user>/<domain>/...` không cần khai báo gì thêm; `api-base` chỉ dành cho host MCP App (host tự inject `<meta name="hub-api-base">`).
+- Origin công khai duy nhất: `https://hub.zinvest.trade` — session `https://hub.zinvest.trade/s/{sessionId}`, artifact `https://hub.zinvest.trade/<user>/<domain>/<file>`, API `https://hub.zinvest.trade/api/...`, remote MCP `https://hub.zinvest.trade/mcp`. Không dùng `localhost`/IP LAN/preview host trong link gửi người học; không nhúng token nào vào artifact hay link.
 - Không tự fetch trong HTML artifact (policy cấm `fetch(`); component lo toàn bộ.

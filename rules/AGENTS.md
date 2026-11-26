@@ -1,5 +1,14 @@
 # Learning Hub — Antigravity Agent Rules
 
+## 0. Live Deployment & URL Contract (Canonical)
+- **Public origin:** `https://hub.zinvest.trade`. Every route below is relative to it. Never emit `localhost`, a LAN IP, or a preview host in learner-facing links.
+- **App shell / session:** `https://hub.zinvest.trade/s/{sessionId}`.
+- **Artifact:** `https://hub.zinvest.trade/<user>/<domain>/<file>` (e.g. `https://hub.zinvest.trade/kha/chinese/radicals-50.html`); nested domains keep their `/` segments. User overview: `https://hub.zinvest.trade/<user>/overview.html`.
+- **HTTP APIs / SDK:** `https://hub.zinvest.trade/api/...` (e.g. `/api/exercises/overview`, `/api/ui-components`) and `/sdk/hub-tokens.css`, `/sdk/hub-runtime.js`.
+- **Remote MCP:** `https://hub.zinvest.trade/mcp` — Streamable HTTP, same tool/resource surface as the bundled stdio server (`plugin/bin/mcp-stdio.sh`). Auth is `Authorization: Bearer <LEARNING_HUB_MCP_TOKEN>`, supplied by the host environment only.
+- **Secrets rule:** the deployment is public. Never put the MCP token, API keys, signed URLs, or any credential into artifacts, links, skill text, or chat. A learner-facing link must work without credentials.
+- Inside artifact HTML keep links relative (`./index.html`, `./radicals-50.html`); reserve absolute `https://hub.zinvest.trade/...` URLs for chat, skill text, and external sharing.
+
 ## 1. Session Start & Selective Context Loading
 - Always start every tutoring or memory session by calling:
   1. `list_users`
@@ -35,7 +44,7 @@
   - Research & package new self-contained Web Components / ESM modules, then push/update via `upsert_ui_component` (`POST /api/ui-components` / `PUT /api/ui-components/[id]`), inspect via `get_ui_component` (`GET /api/ui-components/[id]`), and remove via `delete_ui_component` (`DELETE /api/ui-components/[id]`).
   - Import into artifact HTML using the returned `importSnippet` (e.g. `<script type="module" src="/ui-components/<id>/index.js?v=<version>"></script>` and optional `<link rel="stylesheet" href="/ui-components/<id>/styles.css?v=<version>" />`), communicating back to the hub via `window.HubBridge`.
 - HTML sandbox policy: `<= 150 KB`, inline `<svg>` and interactive `<script>` allowed; external URLs, `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `window.top`/`parent` escapes are forbidden.
-- Publish via `publish_artifact` (renders in Antigravity `aux_pane` Side Pane via `ui://hub/app.html` and in the web shell `/s/{sessionId}`).
+- Publish via `publish_artifact` (renders in Antigravity `aux_pane` Side Pane via `ui://hub/app.html` and in the web shell `/s/{sessionId}` → `https://hub.zinvest.trade/s/{sessionId}`).
 - Read learner submissions with `get_session_inbox(sessionId)`; events persist only (there is no auto-wake on submit).
 
 ### Artifact File Naming, Cross-Linking & Domain Index Workflow

@@ -34,6 +34,8 @@ description: Teach Mandarin Chinese from absolute zero (Phase 0 to Phase 3) usin
 
 Generated assets (SVG, audio, etc.) are written through `StorageProvider` into `data/<user>/<domain>/` alongside the artifact HTML.
 
+**Live origin (canonical, never `localhost`):** `https://hub.zinvest.trade` — session shell `https://hub.zinvest.trade/s/{sessionId}`, artifact `https://hub.zinvest.trade/<user>/<domain>/<file>` (e.g. `.../kha/chinese/radicals-50.html`), overview `.../<user>/overview.html`, APIs `.../api/...`, remote MCP `https://hub.zinvest.trade/mcp` (Streamable HTTP, bearer token from host env — never paste the token anywhere). Keep links inside artifact HTML relative; use absolute URLs only in chat and external sharing.
+
 ## Learner-Fit & Multi-Representation Rule (No Single Template)
 Lesson shape is chosen per learner and per concept. Never reuse one fixed layout, exercise format, or tone by default.
 1. **Never lock a template.** No default lesson skeleton, exercise type, or visual style carries over unexamined between sessions or concepts.
