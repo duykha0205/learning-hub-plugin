@@ -29,9 +29,8 @@ description: Teach Mandarin Chinese from absolute zero (Phase 0 to Phase 3) usin
      - Push or update via MCP `upsert_ui_component` (or `POST /api/ui-components` / `PUT /api/ui-components/[id]`).
      - Inspect via `get_ui_component` (`GET /api/ui-components/[id]`) and remove via `delete_ui_component` (`DELETE /api/ui-components/[id]`).
      - Import into artifact HTML using the returned `importSnippet` (e.g. `<script type="module" src="/ui-components/<id>/index.js?v=<version>"></script>` and optional `<link rel="stylesheet" href="/ui-components/<id>/styles.css?v=<version>" />`), communicating back to the hub via `window.HubBridge`.
-3. Respect `user.age` HTML policy:
-   - `age < 10`: strict mode (`<= 40 KB`, NO inline `<script>` code bodies, NO `on*` attributes).
-   - `age >= 10`: full mode (`<= 150 KB`, inline SVG and `<script>` permitted; NEVER use `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, or external CDNs).
+3. HTML sandbox policy: unified `full` mode (`<= 150 KB`, inline SVG and `<script>` permitted; NEVER use `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `window.top`/`parent` escapes, or untrusted external scripts).
+4. **Artifact checklist:** end every exercise artifact with exactly one `<hub-exercise-submit>` — it collects `<hub-quiz-check>`, `[data-question]` and `<hub-feynman-note>` answers in one `HUB_EXERCISE_SUBMIT` — and append `<exercise-history limit="5">` so the learner sees their own attempt history (it auto-loads `/api/exercises/overview` and refreshes right after the POST commits). Lessons include `<hub-review-deck>` for due SRS cards, `<hub-quiz-check>` for active recall, and `<hub-feynman-note>` for the closing check.
 
 Generated assets (SVG, audio, etc.) are written through `StorageProvider` into `data/<user>/<domain>/` alongside the artifact HTML.
 
@@ -55,13 +54,14 @@ Lesson shape is chosen per learner and per concept. Never reuse one fixed layout
 - Let the learner grade recall (`0..3`); the MCP App automatically persists `HUB_LOG_REVIEW` into `srs_cards` and `learning_events`.
 
 ### Block B — 8-Minute Abstract -> Detail HTML Artifact
-- **Layer 1 (Abstract Overview):** Keep it crisp and visual — show the big-picture mental model (e.g., 3 core pieces in Phase 0, or 4 tone contours `55 / 35 / 214 / 51`), embed generated SVG diagrams, add `<hub-audio-phrase>` for listening at `0.7x` / `1.0x`, and include `<hub-choice-board>` + `<hub-send-back-bar>` so the learner chooses what to drill deeper.
-- **Layer 2+ (Targeted Detail):** When the learner submits choices or asks a question:
+- **Layer 1 (Abstract Overview):** Keep it crisp and visual — show the big-picture mental model (e.g., 3 core pieces in Phase 0, or 4 tone contours `55 / 35 / 214 / 51`), embed generated SVG diagrams, add a `howler`-based audio player (`/ui-components/howler/`) for listening at `0.7x` / `1.0x`, then let the learner ask what to drill deeper.
+- **Layer 2+ (Targeted Detail):** When the learner submits an exercise or asks a question:
   1. Call `get_session_inbox(sessionId)` to consume pending events cleanly.
-  2. Publish a focused drill-down artifact (`parentArtifactId`, `layerDepth: 2` or `3`) using `<hub-hanzi-breakdown>`, `<hub-audio-phrase>`, and `<hub-quiz-check>`.
+  2. Publish a focused drill-down artifact (`parentArtifactId`, `layerDepth: 2` or `3`) using `<hub-quiz-check>` plus dynamic components from `/ui-components/` (e.g. `hanzi-writer` for stroke order, `howler` for audio).
+- End every exercise artifact with `<hub-exercise-submit>` plus `<exercise-history limit="5">` so `HUB_EXERCISE_SUBMIT` persists the result and the learner sees their attempt history.
 - Note on collaboration:
-  - When the learner is using the Antigravity Side Pane (`aux_pane`), `HUB_SELECTION_SUBMIT` / `HUB_FEYNMAN_SUBMIT` automatically triggers a chat message to wake you.
-  - When collaborating via the browser shell (`/s/{sessionId}`), run `node scripts/wait-session-event.mjs --session=<sessionId>` if waiting for the next UI submission, then call `get_session_inbox(sessionId)`.
+  - Every submission (`HUB_EXERCISE_SUBMIT`, including the `feynmanNotes` collected by `<hub-exercise-submit>`) is persisted to `session_events` + `exercise_submissions`; it does **not** wake the agent.
+  - Read pending events explicitly with `get_session_inbox(sessionId)` in both the Antigravity Side Pane (`aux_pane`) and the browser shell (`/s/{sessionId}`).
 
 ### Artifact File Naming, Cross-Linking & Domain Index Workflow
 Whenever creating a new lesson/topic artifact in a domain:
@@ -70,12 +70,13 @@ Whenever creating a new lesson/topic artifact in a domain:
 3. Update (or create) `index.html` in that domain (`publish_artifact` with `filename: "index.html"`) to add the new lesson's card/link (`./radicals-50.html`) into the domain's Learning Path so the learner can jump back and forth seamlessly.
 
 ### Block C — 3-Minute Multi-Angle Feynman Check
-- Close the session with `<hub-feynman-note>` using one of the 4 facets (rotate across sessions):
+- Close the session with `<hub-feynman-note>` using one of the 4 facets; never repeat the same facet twice in a row (rotate across sessions):
   - `explain_simple`: explain the concept plainly in Vietnamese without jargon
   - `contrast_analogy`: compare Mandarin pitch/structure with Vietnamese (e.g. tone 3 `214` vs dấu hỏi)
   - `apply_scenario`: construct a real ordering/greeting phrase using today's words
   - `spot_the_bug`: diagnose an intentional Pinyin/tone/radical error
-- Wait for the learner's response (`get_session_inbox`), give constructive adult-peer feedback, and evaluate using the 0–3 rubric:
+- Full Feynman + Spaced Repetition / Active Recall / Interleaving guidance: `plugin/skills/feynman-learning/SKILL.md`.
+- `<hub-feynman-note>` only collects input; the page-level `<hub-exercise-submit>` sends it inside `HUB_EXERCISE_SUBMIT` as `feynmanNotes`. Wait for the learner's response (`get_session_inbox`), give constructive adult-peer feedback, and evaluate using the 0–3 rubric:
   - `0`: fundamental misconception or blank
   - `1`: remembers fragment, mixes up tones/roles
   - `2`: clear explanation with accurate example
@@ -85,6 +86,7 @@ Whenever creating a new lesson/topic artifact in a domain:
 1. Call `submit_feynman_assessment` with `userId`, `domainId`, `conceptKey`, `sessionId`, `artifactId`, `feynmanFacet`, `feynmanRaw`, `feynmanScore` (`0..3`), and `misconceptionNote` (if score `< 2`). Never calculate `next_review_at` manually.
 2. Mark the final Layer summary artifact `isFinal: true` when wrapping up a milestone so it appears cleanly in the learner's session archive.
 3. If `unconsolidatedCount >= 3` or a milestone finished, suggest or run the `memory-consolidator` workflow.
+4. When the learner asks for progress, call `get_exercise_overview(userId, month?)` and regenerate `data/<user>/overview.html` (linked from `data/<user>/index.html`, served at `/<user>/overview.html`) with the refreshed snapshot.
 
 ## Curriculum Reference (Phase 0 -> 3)
 - **Phase 0 (Day 1 Overview):** 3 pieces of Chinese — Pinyin (Latin sound notation), 4+1 Tones (pitch changes meaning: `mā · má · mǎ · mà`), Hanzi (meaning + phonetic radicals, not an alphabet).

@@ -1,7 +1,7 @@
 {
   "name": "learning-hub",
   "displayName": "Learning Hub",
-  "description": "Local-first AI Tutor & Layered HTML Artifact Hub with SM-2 spaced repetition, multi-angle Feynman checks, and 3-tier modular Markdown memory.",
+  "description": "AI Tutor & Layered HTML Artifact Hub with SM-2 spaced repetition, multi-angle Feynman checks, and 3-tier modular Markdown memory.",
   "version": "2.0.0",
   "logo": "assets/logo.svg",
   "suggestedPrompts": [
